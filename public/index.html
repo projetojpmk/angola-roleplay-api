@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Angola RP VIP</title>
+</head>
+
+<body style="font-family: Arial; background:#111; color:white; padding:20px">
+
+<h1>🔥 Angola RP VIP</h1>
+
+<!-- ================= CLIENTE ================= -->
+<h2>👤 Criar Pedido VIP</h2>
+
+<select id="vip_type">
+    <option value="ouro">VIP Ouro - 3000 Kz</option>
+    <option value="prata">VIP Prata - 2000 Kz</option>
+</select>
+
+<br><br>
+
+<input id="username" placeholder="Username MTA"><br><br>
+<input id="mta_id" placeholder="MTA ID"><br><br>
+<input id="discord_id" placeholder="Discord ID"><br><br>
+
+<button onclick="buyVIP()">Comprar VIP</button>
+
+<p id="result"></p>
+
+<hr>
+
+<!-- ================= ADMIN ================= -->
+<h2>👨‍💼 ADMIN - Pedidos Pendentes</h2>
+
+<button onclick="loadPending()">Carregar pedidos</button>
+
+<div id="orders"></div>
+
+<script>
+
+const API = "https://gentle-emotion-production-733f.up.railway.app";
+
+// ================= CRIAR PEDIDO =================
+async function buyVIP() {
+    const vip_type = document.getElementById("vip_type").value;
+    const username = document.getElementById("username").value;
+    const mta_id = document.getElementById("mta_id").value;
+    const discord_id = document.getElementById("discord_id").value;
+
+    const amount = vip_type === "ouro" ? 3000 : 2000;
+
+    const res = await fetch(API + "/vip/order", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            username,
+            mta_id,
+            discord_id,
+            vip_type,
+            amount
+        })
+    });
+
+    const data = await res.json();
+
+    document.getElementById("result").innerText =
+        "Pedido criado ID: " + data.order_id;
+}
+
+// ================= VER PEDIDOS =================
+async function loadPending() {
+    const res = await fetch(API + "/admin/vip/pending");
+    const data = await res.json();
+
+    let html = "";
+
+    data.forEach(order => {
+        html += `
+        <div style="border:1px solid #444; margin:10px; padding:10px">
+            <p>👤 User: ${order.user_id}</p>
+            <p>💎 VIP: ${order.vip_type}</p>
+            <p>💰 Valor: ${order.amount}</p>
+
+            <button onclick="approve(${order.id})">✔ Aprovar</button>
+            <button onclick="reject(${order.id})">❌ Rejeitar</button>
+        </div>
+        `;
+    });
+
+    document.getElementById("orders").innerHTML = html;
+}
+
+// ================= APROVAR =================
+async function approve(id) {
+    const res = await fetch(API + "/admin/vip/approve", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({order_id: id})
+    });
+
+    const data = await res.json();
+    alert("Aprovado! Código: " + data.code);
+    loadPending();
+}
+
+// ================= REJEITAR =================
+async function reject(id) {
+    await fetch(API + "/admin/vip/reject", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({order_id: id})
+    });
+
+    alert("Rejeitado!");
+    loadPending();
+}
+
+</script>
+
+</body>
+</html>

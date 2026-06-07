@@ -6,26 +6,39 @@ dotenv.config();
 export const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
         GatewayIntentBits.DirectMessages,
         GatewayIntentBits.MessageContent
-    ]
+    ],
+    partials: ["CHANNEL"] // 🔥 necessário para DM funcionar
 });
 
 client.once("ready", () => {
     console.log("🤖 Discord Bot ONLINE!");
 });
 
-export function sendVIPCode(discordId, code) {
+/**
+ * 🔥 ENVIAR VIP PARA O CLIENTE (DM)
+ */
+export async function sendVIPCode(discordId, code, username, vipType) {
     try {
-        const user = client.users.cache.get(discordId);
+        const user = await client.users.fetch(discordId);
 
-        if (user) {
-            user.send(`🔥 VIP APROVADO!\n🔑 Código: ${code}`);
-        } else {
-            console.log("Usuário não encontrado no cache");
+        if (!user) {
+            console.log("Usuário não encontrado no Discord");
+            return;
         }
+
+        await user.send(
+            `🔥 **VIP APROVADO ANGOLA RP**\n\n` +
+            `👤 Nome: ${username}\n` +
+            `💎 VIP: ${vipType}\n` +
+            `🔑 Código: ${code}\n\n` +
+            `🎮 Usa este código no jogo com /vipcode`
+        );
+
+        console.log("✔ VIP enviado por DM:", discordId);
+
     } catch (err) {
-        console.log("Erro Discord:", err);
+        console.log("❌ Erro ao enviar DM:", err);
     }
 }
